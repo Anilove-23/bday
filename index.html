@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff2d2d;
+            --secondary: #1a1a1a;
+            --text: #ffffff;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--secondary);
+            color: var(--text);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 45, 45, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 45, 45, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, var(--primary), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s forwards 0.5s;
+        }
+        
+        .welcome-text {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s forwards 1s;
+        }
+        
+        .form-container {
+            background-color: rgba(26, 26, 26, 0.8);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 45, 45, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s forwards 1.5s;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        input, button {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        input {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: 1px solid rgba(255, 45, 45, 0.3);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: #ff1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 45, 45, 0.4);
+        }
+        
+        #preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 1rem auto;
+            display: none;
+            border: 3px solid var(--primary);
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes sparkle {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Birthday Tracker</h1>
+        <p class="welcome-text">Welcome to our special birthday tracking system. Please enter your details below.</p>
+        
+        <div class="form-container">
+            <form id="birthdayForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photo">Upload Your Photo</label>
+                    <input type="file" id="photo" accept="image/*" required>
+                    <img id="preview" src="#" alt="Preview">
+                </div>
+                
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Create sparks
+        function createSparks() {
+            const colors = ['#ff2d2d', '#ff6b6b', '#ff9e9e', '#ffd3d3'];
+            const container = document.querySelector('.container');
+            
+            for (let i = 0; i < 30; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.style.left = `${Math.random() * 100}%`;
+                spark.style.top = `${Math.random() * 100}%`;
+                spark.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.opacity = Math.random() * 0.5 + 0.5;
+                container.appendChild(spark);
+                
+                // Animate sparks
+                setInterval(() => {
+                    spark.style.animation = 'sparkle 1s forwards';
+                    setTimeout(() => {
+                        spark.style.left = `${Math.random() * 100}%`;
+                        spark.style.top = `${Math.random() * 100}%`;
+                        spark.style.animation = 'none';
+                        setTimeout(() => {
+                            spark.style.animation = 'sparkle 1s forwards';
+                        }, 10);
+                    }, 1000);
+                }, Math.random() * 3000 + 2000);
+            }
+        }
+        
+        // Preview image
+        document.getElementById('photo').addEventListener('change', function(e) {
+            const preview = document.getElementById('preview');
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            
+            reader.readAsDataURL(file);
+        });
+        
+        // Form submission
+        document.getElementById('birthdayForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const dob = document.getElementById('dob').value;
+            const photo = document.getElementById('photo').files[0];
+            
+            // Store data in localStorage
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const birthdayData = {
+                    name: name,
+                    dob: dob,
+                    photo: e.target.result,
+                    timestamp: new Date().getTime()
+                };
+                
+                let people = JSON.parse(localStorage.getItem('birthdayPeople')) || [];
+                people.push(birthdayData);
+                localStorage.setItem('birthdayPeople', JSON.stringify(people));
+                
+                // Redirect to display page
+                window.location.href = 'birthdays.html';
+            };
+            
+            reader.readAsDataURL(photo);
+        });
+        
+        // Initialize
+        window.addEventListener('load', createSparks);
+    </script>
+</body>
+</html>

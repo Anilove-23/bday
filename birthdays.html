@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff2d2d;
+            --secondary: #1a1a1a;
+            --text: #ffffff;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--secondary);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(90deg, var(--primary), #ff6b6b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .person-card {
+            background-color: rgba(26, 26, 26, 0.8);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(255, 45, 45, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .person-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 45, 45, 0.2);
+        }
+        
+        .person-card.birthday {
+            border: 3px solid var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        .person-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            margin: 0 auto 1rem;
+        }
+        
+        .person-name {
+            font-size: 1.3rem;
+            margin: 0.5rem 0;
+            color: var(--primary);
+        }
+        
+        .person-dob, .person-age {
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transform: translateX(200%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 45, 45, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 45, 45, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 45, 45, 0); }
+        }
+        
+        .sort-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .sort-btn {
+            background-color: rgba(255, 45, 45, 0.2);
+            color: var(--text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sort-btn.active {
+            background-color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .sort-btn:hover {
+            background-color: rgba(255, 45, 45, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Birthday Tracker</h1>
+        
+        <div class="sort-controls">
+            <button class="sort-btn active" data-sort="age-desc">Sort by Age (Descending)</button>
+            <button class="sort-btn" data-sort="age-asc">Sort by Age (Ascending)</button>
+            <button class="sort-btn" data-sort="name">Sort by Name</button>
+        </div>
+        
+        <div class="people-grid" id="peopleContainer">
+            <!-- People will be inserted here by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="notification" id="birthdayNotification">
+        It's someone's birthday today! 🎉
+    </div>
+    
+    <script>
+        // Calculate age from date of birth
+        function calculateAge(dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return age;
+        }
+        
+        // Check if today is birthday
+        function isBirthday(dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            
+            return birthDate.getDate() === today.getDate() && 
+                   birthDate.getMonth() === today.getMonth();
+        }
+        
+        // Format date
+        function formatDate(dob) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dob).toLocaleDateString(undefined, options);
+        }
+        
+        // Display people
+        function displayPeople(sortMethod = 'age-desc') {
+            const container = document.getElementById('peopleContainer');
+            container.innerHTML = '';
+            
+            let people = JSON.parse(localStorage.getItem('birthdayPeople')) || [];
+            let hasBirthday = false;
+            
+            // Sort people
+            if (sortMethod === 'age-desc') {
+                people.sort((a, b) => calculateAge(b.dob) - calculateAge(a.dob));
+            } else if (sortMethod === 'age-asc') {
+                people.sort((a, b) => calculateAge(a.dob) - calculateAge(b.dob));
+            } else if (sortMethod === 'name') {
+                people.sort((a, b) => a.name.localeCompare(b.name));
+            }
+            
+            // Create cards
+            people.forEach(person => {
+                const age = calculateAge(person.dob);
+                const birthdayToday = isBirthday(person.dob);
+                
+                if (birthdayToday) hasBirthday = true;
+                
+                const card = document.createElement('div');
+                card.className = `person-card ${birthdayToday ? 'birthday' : ''}`;
+                card.innerHTML = `
+                    <img src="${person.photo}" alt="${person.name}" class="person-photo">
+                    <h3 class="person-name">${person.name}</h3>
+                    <p class="person-dob">${formatDate(person.dob)}</p>
+                    <p class="person-age">Age: ${age}</p>
+                    ${birthdayToday ? '<p class="person-bday">🎉 Birthday Today! 🎉</p>' : ''}
+                `;
+                
+                container.appendChild(card);
+            });
+            
+            // Show notification if there's a birthday
+            if (hasBirthday) {
+                const notification = document.getElementById('birthdayNotification');
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
+            }
+        }
+        
+        // Sort controls
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                displayPeople(this.dataset.sort);
+            });
+        });
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            displayPeople();
+            
+            // Check for birthdays every day
+            setInterval(() => {
+                const today = new Date();
+                if (today.getHours() === 0 && today.getMinutes() === 0) {
+                    displayPeople(document.querySelector('.sort-btn.active').dataset.sort);
+                }
+            }, 60000); // Check every minute
+        });
+    </script>
+</body>
+</html>
